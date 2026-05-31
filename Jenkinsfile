@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'Node20' // Yêu cầu đã cấu hình Tool NodeJS 'Node20' trong Jenkins
-    }
-
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
         timeout(time: 10, unit: 'MINUTES')
