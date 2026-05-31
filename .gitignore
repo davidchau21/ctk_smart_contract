@@ -7,7 +7,6 @@ coverage.json
 
 # Dependencies
 node_modules/
-package-lock.json
 
 # Environment files (CRITICAL SECURITY FOR BLOCKCHAIN PRIVATE KEYS)
 .env
