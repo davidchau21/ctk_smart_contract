@@ -39,10 +39,15 @@ pipeline {
         stage('5. Deploy to Sepolia Testnet') {
             steps {
                 echo "🚀 Đang chuẩn bị môi trường và deploy Smart Contracts..."
-                // Sử dụng file cấu hình .env (ctk_contract) đã được tạo sẵn trên Jenkins
-                configFileProvider([configFile(fileId: 'ctk_contract', targetLocation: '.env')]) {
-                    // Chạy script deploy lên Sepolia (Hardhat sẽ tự đọc file .env vừa được nạp)
-                    sh 'npx hardhat run scripts/deploy.ts --network sepolia'
+                // Nạp credentials 'ctk_contract' (dạng Secret Text chứa nội dung file .env) và ghi thành file .env
+                withCredentials([string(credentialsId: 'ctk_contract', variable: 'ENV_CONTENT')]) {
+                    sh """
+                        # Ghi nội dung bảo mật từ credential vào file .env
+                        echo "\$ENV_CONTENT" > .env
+                        
+                        # Chạy script deploy lên Sepolia
+                        npx hardhat run scripts/deploy.ts --network sepolia
+                    """
                 }
             }
         }
