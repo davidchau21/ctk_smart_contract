@@ -40,20 +40,12 @@ pipeline {
             }
         }
 
-        // Giai đoạn này chỉ chạy khi push lên nhánh main/master để deploy lên Testnet
         stage('5. Deploy to Sepolia Testnet') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
             steps {
-                echo "🚀 Đang deploy Smart Contracts lên Sepolia Testnet..."
-                // Cần cấu hình ví deployer trong Jenkins Credentials (Secret Text)
-                // để tránh bị lộ Private Key trên Git
-                withCredentials([string(credentialsId: 'sepolia-deployer-private-key', variable: 'PRIVATE_KEY')]) {
-                    // Chạy script deploy của Hardhat
+                echo "🚀 Đang chuẩn bị môi trường và deploy Smart Contracts..."
+                // Sử dụng file cấu hình .env (ctk_contract) đã được tạo sẵn trên Jenkins
+                configFileProvider([configFile(fileId: 'ctk_contract', targetLocation: '.env')]) {
+                    // Chạy script deploy lên Sepolia (Hardhat sẽ tự đọc file .env vừa được nạp)
                     sh 'npx hardhat run scripts/deploy.ts --network sepolia'
                 }
             }
