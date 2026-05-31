@@ -1,0 +1,30 @@
+# Hardhat compilation artifacts & caching
+/artifacts/
+/cache/
+/typechain-types/
+/coverage/
+coverage.json
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment files (CRITICAL SECURITY FOR BLOCKCHAIN PRIVATE KEYS)
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# Compilation output / build
+/dist/
+*.log
+
+# Hardhat Ignition deployments caching
+/ignition/deployments/
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
