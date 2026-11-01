@@ -27,6 +27,16 @@ describe("CryptoTrackerToken", function () {
     it("Should start with 0 total supply", async function () {
       expect(await token.totalSupply()).to.equal(0);
     });
+
+    it("Should grant DEFAULT_ADMIN_ROLE, MINTER_ROLE and PAUSER_ROLE to owner", async function () {
+      const DEFAULT_ADMIN_ROLE = await token.DEFAULT_ADMIN_ROLE();
+      const MINTER_ROLE = await token.MINTER_ROLE();
+      const PAUSER_ROLE = await token.PAUSER_ROLE();
+
+      expect(await token.hasRole(DEFAULT_ADMIN_ROLE, owner.address)).to.be.true;
+      expect(await token.hasRole(MINTER_ROLE, owner.address)).to.be.true;
+      expect(await token.hasRole(PAUSER_ROLE, owner.address)).to.be.true;
+    });
   });
 
   describe("Minting", function () {
@@ -37,11 +47,20 @@ describe("CryptoTrackerToken", function () {
       expect(await token.totalSupply()).to.equal(mintAmount);
     });
 
-    it("Should fail if a non-owner tries to mint", async function () {
+    it("Should allow assigned MINTER_ROLE account to mint", async function () {
+      const MINTER_ROLE = await token.MINTER_ROLE();
+      await token.grantRole(MINTER_ROLE, addr1.address);
+
+      const mintAmount = ethers.parseEther("500");
+      await token.connect(addr1).mint(addr2.address, mintAmount);
+      expect(await token.balanceOf(addr2.address)).to.equal(mintAmount);
+    });
+
+    it("Should fail if a non-owner/non-minter tries to mint", async function () {
       const mintAmount = ethers.parseEther("1000");
       await expect(
         token.connect(addr1).mint(addr2.address, mintAmount)
-      ).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
+      ).to.be.revertedWithCustomError(token, "UnauthorizedCaller");
     });
 
     it("Should fail if minting exceeds max supply", async function () {
@@ -53,7 +72,7 @@ describe("CryptoTrackerToken", function () {
       const oneToken = ethers.parseEther("1");
       await expect(
         token.mint(owner.address, oneToken)
-      ).to.be.revertedWith("CTK: Max supply exceeded");
+      ).to.be.revertedWithCustomError(token, "ExceedsMaxSupply");
     });
   });
 
@@ -107,6 +126,17 @@ describe("CryptoTrackerToken", function () {
       const transferAmount = ethers.parseEther("100");
       await token.connect(addr1).transfer(addr2.address, transferAmount);
       expect(await token.balanceOf(addr2.address)).to.equal(transferAmount);
+    });
+  });
+
+  describe("ERC20Permit", function () {
+    it("Should expose DOMAIN_SEPARATOR and nonces for gasless approvals", async function () {
+      const domainSeparator = await token.DOMAIN_SEPARATOR();
+      expect(domainSeparator).to.be.a("string");
+      expect(domainSeparator.length).to.equal(66); // 0x + 64 hex chars
+      
+      const nonce = await token.nonces(owner.address);
+      expect(nonce).to.equal(0);
     });
   });
 });
